@@ -6,7 +6,7 @@ package apl1;
 public class Pilha {
     private static int MAX_SIZE = 100;
     private int topoPilha;
-    private int vetor[];
+    private double vetor[];
 }
 
 //Construtor padrão
@@ -38,4 +38,9 @@ public boolean isFull(){
     else {
         return false;
     }
+}
+
+//Adicionar valor na pilha
+public void push(double d){
+    
 }

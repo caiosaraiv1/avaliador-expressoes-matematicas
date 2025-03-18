@@ -103,9 +103,9 @@ public class GerenciadorVariaveis {
 			return;
 		}
 		
-		// Printa todas as variaveis e seus valores
+		// Printa todas as variaveis e seus valores caso estejam definidas 
 		for(int i = 0; i < index; i++) {
-			System.out.println(vars[i] + " = " + nums[i]);
+			System.out.println(vars[i] + " = " + nums[i]);				
 		}
 	}
 	

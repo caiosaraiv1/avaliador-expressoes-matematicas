@@ -124,7 +124,7 @@ public class GerenciadorComandos {
 		
 		// Se o comando for válido, adiciona a fila de comandos
 		fila.enqueue(comando);
-		System.out.println("(REC: " + filaComandos.size() + "/10) " + comando)
+		System.out.println("(REC: " + fila.size() + "/10) " + comando)
 	}
 	
 	/*
@@ -136,7 +136,7 @@ public class GerenciadorComandos {
 		    throw new IllegalStateException("Erro: gravação não iniciada.");
 		}
 		gravando = false;
-		System.out.println("Encerrando gravação... (" + filaComandos.size() + "/10)");
+		System.out.println("Encerrando gravação... (" + fila.size() + "/10)");
 	}
 	
 	/*

@@ -124,7 +124,7 @@ public class GerenciadorComandos {
 		
 		// Se o comando for válido, adiciona a fila de comandos
 		fila.enqueue(comando);
-		System.out.println("(REC: " + fila.size() + "/10) " + comando)
+		System.out.println("(REC: " + fila.size() + "/10) " + comando);
 	}
 	
 	/*

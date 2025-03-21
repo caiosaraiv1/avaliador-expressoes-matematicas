@@ -2,7 +2,12 @@ package apl1;
 
 // Será feito as validações, conversões, avaliações e lógica do calculo
 public class AvaliadorEquacoes {
-    // PRECISA AINDA FAZER UMA VERIFICACAO DE SE A VARIAVEL JA ESTA SETADA RSRS XESQUE DELE 
+    GerenciadorVariaveis ger; 
+
+    public AvaliadorEquacoes {
+        ger = new GerenciadorVariaveis();
+    }
+
 	public static void main(String[] args) {
 	}
 	public void validExpression(String Expression){
@@ -15,6 +20,10 @@ public class AvaliadorEquacoes {
 			throw IllegalArgumentException("Invalid Expression.");
 		}
 		for (char letter : Expression.toCharArray()) { // Faz a leitura da expressao
+
+            if(ger.!isDefinida(letter)){ // Verifica se a variavel esta definida
+                throw IllegalArgumentException("Invalid Expression: Indefined variable");
+            }
 			if(Character.isLetter(letter) && Character.isLetter(Expression.charAt(letterPosition + 1))){ // Verifica se eh String
 				throw IllegalArgumentException("Invalid Expression: String detected.");
 			}

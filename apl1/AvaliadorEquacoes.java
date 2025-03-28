@@ -2,14 +2,29 @@ package apl1;
 
 // Será feito as validações, conversões, avaliações e lógica do calculo
 public class AvaliadorEquacoes {
-    GerenciadorVariaveis ger; 
+	private GerenciadorVariaveis ger;
+	private String equacaoRecebida;
+	private String equacaoConvertida;
 
-    public AvaliadorEquacoes {
-        ger = new GerenciadorVariaveis();
-    }
+	// Contrutor vazio
+	public AvaliadorEquacoes() {
 
-	public static void main(String[] args) {
 	}
+
+	// Contrutor
+	public AvaliadorEquacoes(String equacaoRecebida) {
+		this.ger = new GerenciadorVariaveis();
+		validExpression(equacaoRecebida);
+		this.equacaoRecebida = equacaoRecebida;
+		this.equacaoConvertida = "";
+	}
+
+	// pegar a string recebida
+	public void setStringRecebida(String equacaoRecebida) {
+		validExpression(equacaoRecebida);
+		this.equacaoRecebida = equacaoRecebida;
+	}
+
 	public void validExpression(String Expression){
 		int firstP = 0, lastP = 0;
 		boolean lastOperator = false;
@@ -55,8 +70,8 @@ public class AvaliadorEquacoes {
         }
 		System.out.println("Valid Expression");
 	}
+
 	private boolean isOperator(char c){  // Verifica se eh um operador valido
 		return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
 	}
-
 }

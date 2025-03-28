@@ -1,7 +1,5 @@
 package apl1;
 
-//ISABELA
-
 // Implementação da pilha
 public class Pilha {
 	private static int MAX_SIZE = 100;

@@ -2,9 +2,9 @@ package apl1;
 
 // Será feito as validações, conversões, avaliações e lógica do calculo
 public class AvaliadorEquacoes {
-	private GerenciadorVariaveis ger;
+	private GerenciadorVariaveis ger = new GerenciadorVariaveis();
 	private String equacaoRecebida;
-	private String equacaoConvertida;
+	private String equacaoConvertida = "";
 
 	// Contrutor vazio
 	public AvaliadorEquacoes() {
@@ -13,10 +13,8 @@ public class AvaliadorEquacoes {
 
 	// Contrutor
 	public AvaliadorEquacoes(String equacaoRecebida) {
-		this.ger = new GerenciadorVariaveis();
 		validExpression(equacaoRecebida);
 		this.equacaoRecebida = equacaoRecebida;
-		this.equacaoConvertida = "";
 	}
 
 	// pegar a string recebida

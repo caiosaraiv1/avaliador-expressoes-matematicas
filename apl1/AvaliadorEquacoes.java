@@ -5,6 +5,8 @@ public class AvaliadorEquacoes {
 	private GerenciadorVariaveis ger = new GerenciadorVariaveis();
 	private String equacaoRecebida;
 	private String equacaoConvertida;
+	private int tamanho;
+	private PilhaString pilha;
 
 	// Contrutor vazio
 	public AvaliadorEquacoes() {
@@ -14,9 +16,11 @@ public class AvaliadorEquacoes {
 	// Contrutor
 	public AvaliadorEquacoes(String equacaoRecebida) {
 		this.ger = new GerenciadorVariaveis();
-		validExpression(equacaoRecebida);
-		this.equacaoRecebida = equacaoRecebida;
+		validExpression(equacaoRecebida); // Valida a expressão antes mesmo de criar.
+		this.equacaoRecebida = tiraEspacoEDeixaMaiusculo(equacaoRecebida);
 		this.equacaoConvertida = "";
+		this.tamanho = equacaoRecebida.length();
+		this.pilha = new PilhaString();
 	}
 
 	// setar a string recebida
@@ -98,5 +102,58 @@ public class AvaliadorEquacoes {
 
 	private boolean isOperator(char c) { // Verifica se eh um operador valido
 		return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
+	}
+
+	// metodo prioridade de operadores
+	private boolean operadorTopoEhMaior(String operadorAserComparado) {
+		if (operadorAserComparado.equals("^")) {
+			return true;
+		}
+		if (operadorAserComparado.equals("*") || operadorAserComparado.equals("/")) {
+			String operadorAnterior = pilha.topo();
+			if (operadorAnterior.equals("^")) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	// Conversor de equação de infixa para posfixa
+	public void conversorDeEquacao(){
+		for(int i = 0; i < this.tamanho; i++){
+			String c = String.valueOf(this.equacaoRecebida.charAt(i)); //char a ser avaliado
+			//Quando a pilha estiver vazia
+			if (this.pilha.isEmpty()){
+				if (isOperator(c.charAt(0))){ //Se operador, empilhe
+					this.pilha.push(c);
+				}else{  //Se variavel, concatene
+					this.equacaoConvertida += c;
+				}
+			}else{ //Quando pilha não vazia
+				if (c.equals("(")){ //Se parentesis de abertura, empilhe
+					this.pilha.push(c);
+				}else if (c.equals(")")){ //Se parentesis de fechamento,
+					while (!this.pilha.topo().equals("(")){ //desempilhe ate ")"
+						this.equacaoConvertida += this.pilha.pop();
+					}
+					this.pilha.pop(); //Descarta o (
+					//Se op tiver peso maior ou igual ao ultimo empilhado
+				}else if (isOperator(c.charAt(0))) {
+					while (!this.pilha.isEmpty() && operadorTopoEhMaior(c)) {
+						this.equacaoConvertida += this.pilha.pop();
+					}
+					this.pilha.push(c);
+				}				
+			} //Esvazia a pilha no final, sem acrescentar parentesis
+		}
+		while(!this.pilha.isEmpty()){
+			String topo = this.pilha.pop();
+			if (!topo.equals("(") && !topo.equals(")")) {
+				this.equacaoConvertida += topo;
+			}
+		}
 	}
 }

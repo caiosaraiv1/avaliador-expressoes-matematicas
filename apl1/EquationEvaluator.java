@@ -139,7 +139,7 @@ public void convertEquation() throws Exception {
         this.convertedEquation += c;
     }
 
-    // ✅ Esvazia a pilha ao final
+    // Esvazia a pilha ao final
     while (!this.stack.isEmpty()) {
         String topo = this.stack.pop();
         if (!topo.equals("(") && !topo.equals(")")) {

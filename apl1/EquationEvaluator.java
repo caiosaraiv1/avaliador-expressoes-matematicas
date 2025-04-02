@@ -27,8 +27,8 @@ public class EquationEvaluator {
 
 	// Define a equação recebida
     public void setReceivedEquation(String receivedEquation) {
+	this.receivedEquation = receivedEquation;
         validateExpression(receivedEquation);
-        this.receivedEquation = receivedEquation;
     }
 
     // Remove espaços da equação e a converte para letras maiúsculas

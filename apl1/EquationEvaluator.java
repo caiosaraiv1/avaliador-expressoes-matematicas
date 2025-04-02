@@ -110,33 +110,40 @@ public class EquationEvaluator {
         return false;
     }
 
-    // Converte equação de notação infixa para pós-fixa
-    public void convertEquation() throws Exception {
-        for (int i = 0; i < this.equationLength; i++) {
-            String c = String.valueOf(this.receivedEquation.charAt(i));
+// Converte equação de notação infixa para pós-fixa
+public void convertEquation() throws Exception {
+    for (int i = 0; i < this.equationLength; i++) {
+        String c = String.valueOf(this.receivedEquation.charAt(i));
 
-            if (c.equals("(")) {
-                this.stack.push(c);
-                continue;
+        if (c.equals("(")) {
+            this.stack.push(c);
+            continue;
+        }
+
+        if (c.equals(")")) {
+            while (!this.stack.isEmpty() && !this.stack.peek().equals("(")) {
+                this.convertedEquation += this.stack.pop();
             }
+            this.stack.pop();
+            continue;
+        }
 
-            if (c.equals(")")) {
-                while (!this.stack.isEmpty() && !this.stack.peek().equals("(")) {
-                    this.convertedEquation += this.stack.pop();
-                }
-                this.stack.pop();
-                continue;
+        if (isOperator(c.charAt(0))) {
+            while (!this.stack.isEmpty() && isTopOperatorHigher(c)) {
+                this.convertedEquation += this.stack.pop();
             }
+            this.stack.push(c);
+            continue;
+        }
 
-            if (isOperator(c.charAt(0))) {
-                while (!this.stack.isEmpty() && isTopOperatorHigher(c)) {
-                    this.convertedEquation += this.stack.pop();
-                }
-                this.stack.push(c);
-                continue;
-            }
+        this.convertedEquation += c;
+    }
 
-            this.convertedEquation += c;
+    // ✅ Esvazia a pilha ao final
+    while (!this.stack.isEmpty()) {
+        String topo = this.stack.pop();
+        if (!topo.equals("(") && !topo.equals(")")) {
+            this.convertedEquation += topo;
         }
     }
 }

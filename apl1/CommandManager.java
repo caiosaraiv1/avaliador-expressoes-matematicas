@@ -3,155 +3,151 @@ package apl1;
 /*
  * Classe responsável por gerenciar os comandos recebidos
  */
-public class GerenciadorComandos {
-	
-	private GerenciadorVaiaveis gerenciador; 
-	private Fila fila;
-	private boolean gravando = false;
-	
-	// Construtor que irá inicilizar o GerenciadorVariaveis e a Fila
-	public GerenciadorComandos() {
-		gerenciador = new GerenciadorVaiaveis();
-		fila = new Fila();
-	}
-	
-	/*
-	 * Método para verificar se o comando fornecido é valido
-	 * Se não for lança uma exceção
-	 */
-	public boolean verificarComando(String s) {
-	    String[] comandosValidos = {"VARS", "RESET", "REC", "STOP", "PLAY", "ERASE", "EXIT"};
-		
-	    // Verifica se é valido
-		for(String comando: comandosValidos) {
-			if(s.equalsIgnoreCase(comando))
-				return true;
-		}
-	    
-		throw new IllegalArgumentException("Comando inválido: " + s);
-	}
-	
-	/*
-	 * Método para executar o comando passado
-	 */
-	public void executarComando(String s) {
-		
-		verificarComando(s);
-		
-		switch (s) {
-			case "VARS" :
-				gerenciador.listarVars();
-				break;
-			case "RESET" :
-				gerenciador.resetar();
-				break;
-			case "REC":
-                iniciarGravacao();
-				break;
-			case "STOP":
-                pararGravacao();
-				break;
-			case "PLAY":
-				reproduzirComandos();
-				break;
-			case "ERASE":
-				// TODO
-				break;
-			case "EXIT":
-				System.out.println("Saindo do programa...");
-				System.exit(0);
-				break;
-			default:
-				throw new IllegalArgumentException("Comando inválido.");
-		
-		}
-	}	
-	
-	/*
-	 * Método para iniciar a gravação de comandos
-	 * Se já estiver gravando, lança uma exceção
-	 */
-	public void iniciarGravacao() {
-		// Se já estiver gravando, lança uma exceção
-		if(gravando) {
-			throw new IllegalArgumentException("Já está gravando.");
-			return;
-		}
-		
-		gravando = true;
-		System.out.println("Iniciando gravação... (REC: 0/10)");
-	}
-	
-	/*
-	 * Método para gravar um comando na fila durante a gravação
-	 * Se a gravação não foi iniciada, lança uma exceção
-	 * Se o comando for inválido ou a fila estiver cheia, a gravação é interrompida
-	 */
-	public void gravarComando(String comando) {
-	    // Lança exceção se a gravação não foi iniciada
-		if(!gravando) {
-		    throw new IllegalStateException("Erro: gravação não iniciada.");
-		}
-		
-		// Verifica se o comando é um dos comandos inválidos para gravação
-		if(comando.equalsIgnoreCase("REC") || 
-			comando.equalsIgnoreCase("STOP") || 
-			comando.equalsIgnoreCase("PLAY") || 
-			comando.equalsIgnoreCase("ERASE")) {
-                System.out.println("Erro: comando inválido para gravação.");
-                return;
+public class CommandManager {
+    
+    private VariableManager variableManager; // Gerenciador de variáveis
+    private Queue<String> queue; // Fila para armazenar comandos gravados
+    private boolean recording = false; // Indica se a gravação está ativa
+    private EquationEvaluator equationEvaluator; // Avaliador de expressões matemáticas
+
+    // Construtor que inicializa o Gerenciador de Variáveis, a Fila e o Avaliador
+    public CommandManager() {
+        variableManager = new VariableManager();
+        queue = new Queue<>();
+        equationEvaluator = new EquationEvaluator();
+    }
+    
+    /*
+     * Método para verificar se o comando fornecido é válido
+     * Se não for, lança uma exceção
+     */
+    public boolean isValidCommand(String command) {
+        String[] validCommands = {"VARS", "RESET", "REC", "STOP", "PLAY", "ERASE", "EXIT"};
+        
+        for (String validCommand : validCommands) {
+            if (command.equalsIgnoreCase(validCommand)) {
+                return true;
+            }
         }
-		// Verifica se a fila está cheia. Se estiver, a gravação é interrompida
-		if(fila.isFull()) {
-			System.out.println("Limite de comandos atingidos. Parando a gravação...");
-			pararGravacao();
-			return;
-		}
-		
-		/*
-		 * Aqui será verificado se o operador é valido
-		 * Essa validação depende da implementação do avaliador de equações
-		 * 
-		 * EXEMPLO: A % B -> Erro: operador inválido.
-		 * 
-		 * TODO: Implementar a validação do operador 
-		 *
-		if(TODO) {
-			TODO
-			System.out.println("Erro: operador inválido.");
-		}
-		*/
-		
-		// Se o comando for válido, adiciona a fila de comandos
-		fila.enqueue(comando);
-		System.out.println("(REC: " + fila.size() + "/10) " + comando);
-	}
-	
-	/*
-	 * Método para parar a gravação de comandos.
-	 * Se a gravação não foi iniciada, lança uma exceção.
-	 */
-	public void pararGravacao() {
-		if(!gravando) {
-		    throw new IllegalStateException("Erro: gravação não iniciada.");
-		}
-		gravando = false;
-		System.out.println("Encerrando gravação... (" + fila.size() + "/10)");
-	}
-	
-	/*
-	 * Método para reproduzir os comandos gravados
-	 * Exibe os comandos na ordem em que foram gravados
-	 */
-	public void reproduzirComandos() {
-        System.out.println("Reproduzindo gravação...");
-        while(!fila.isEmpty()) {
-        	String comando = fila.dequeue();
-        	System.out.println(comando);
+        throw new IllegalArgumentException("Invalid Command: " + command);
+    }
+    
+    /*
+     * Método para executar o comando passado
+     */
+    public void executeCommand(String command) {
+        isValidCommand(command);
+        
+        switch (command) {
+            case "VARS":
+                variableManager.listVariables();
+                break;
+            case "RESET":
+                variableManager.resetVariables();
+                break;
+            case "REC":
+                startRecording();
+                break;
+            case "STOP":
+                stopRecording();
+                break;
+            case "PLAY":
+                playCommands();
+                break;
+            case "ERASE":
+                clearCommands();
+                break;
+            case "EXIT":
+                System.out.println("Exiting the program...");
+                System.exit(0);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid Command.");
         }
-        /* TODO: Implementar a reinicialização das variáveis após a reprodução.
-        System.out.println("Variáveis reiniciadas."); */
-	}
+    }
+    
+    /*
+     * Método para iniciar a gravação de comandos
+     * Se já estiver gravando, lança uma exceção
+     */
+    public void startRecording() {
+        if (recording) {
+            throw new IllegalArgumentException("Already recording.");
+        }
+        recording = true;
+        System.out.println("Starting recording... (REC: 0/10)");
+    }
+    
+    /*
+     * Método para gravar um comando na fila durante a gravação
+     */
+    public void recordCommand(String command) {
+        if (!recording) {
+            throw new IllegalStateException("Recording not started.");
+        }
+        
+        if (command.equalsIgnoreCase("REC") || 
+            command.equalsIgnoreCase("STOP") || 
+            command.equalsIgnoreCase("PLAY") || 
+            command.equalsIgnoreCase("ERASE")) {
+            System.out.println("Invalid command for recording.");
+            return;
+        }
+        
+        if (queue.isFull()) {
+            System.out.println("Command limit reached. Stopping recording...");
+            stopRecording();
+            return;
+        }
+        
+        try {
+            equationEvaluator.validateExpression(command);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+        
+        queue.enqueue(command);
+        System.out.println("(REC: " + queue.getSize() + "/10) " + command);
+    }
+    
+    /*
+     * Método para parar a gravação de comandos.
+     */
+    public void stopRecording() {
+        if (!recording) {
+            throw new IllegalStateException("Recording not started.");
+        }
+        recording = false;
+        System.out.println("Ending recording... (" + queue.getSize() + "/10)");
+    }
+    
+    /*
+     * Método para reproduzir os comandos gravados
+     */
+    public void playCommands() {
+        if (queue.isEmpty()) {
+            System.out.println("There is no recording to play.");
+            return;
+        }
+        
+        System.out.println("Playing recording...");
+        while (!queue.isEmpty()) {
+            String command = queue.dequeue();
+            System.out.println(command);
+        }
+    }
+    
+    /*
+     * Método para apagar os comandos gravados
+     */
+    public void clearCommands() {
+        if (queue.isEmpty()) {
+            System.out.println("The queue is already empty.");
+            return;
+        }
+        
+        queue.clear();
+        System.out.println("Recording deleted..");
+    }
 }
-
-

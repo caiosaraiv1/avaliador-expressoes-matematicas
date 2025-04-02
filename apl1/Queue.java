@@ -1,87 +1,95 @@
 package apl1;
 
-public class Fila {
+public class Queue<T> {
 
-    private String[] fila;
+    private T[] queue;
     
-    // Indice do primeiro elemento da fila
-    private int front = 0;
+    // Índice do primeiro elemento da fila
+    private int frontIndex = 0;
     
-    // Indice do proximo local disponivel para inserção
-    private int rear = 0;
+    // Índice do próximo local disponível para inserção
+    private int rearIndex = 0;
 
-    // Cria uma fila com 10 elementos 
-    public Fila() {
+    // Cria uma fila com 10 elementos
+    public Queue() {
         this(10);
     }
 
-    public Fila(int tamanho) {
-        if (tamanho <= 0) {
-            throw new IllegalArgumentException("Tamanho deve ser maior que 0.");
+    @SuppressWarnings("unchecked")
+	public Queue(int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be greater than 0.");
         }
-        fila = new String[tamanho];
+        queue = (T[]) new Object[size];
     }
 
-    // Método que verifica se a fila está vazia (front == rear indica que a fila está vazia).
+    // Método que verifica se a fila está vazia (frontIndex == rearIndex indica que a fila está vazia)
     public boolean isEmpty() {
-        return front == rear;
+        return frontIndex == rearIndex;
     }
 
     /*
-     * Método para adicionar um elemento a fila
+     * Método para adicionar um elemento à fila
      * Lança exceção se a fila estiver cheia
      */
-    public void enqueue(String e) {
+    public void enqueue(T element) {
         if (this.isFull()) {
-            throw new IllegalStateException("Fila cheia.");
+            throw new IllegalStateException("Queue full.");
         }
-        fila[rear] = e; // Adiciona o elemento na posição de rear
-        rear = (rear + 1) % fila.length; // Atualiza o indice rear, realizando um "loop" circular
+        queue[rearIndex] = element; // Adiciona o elemento na posição de rearIndex
+        rearIndex = (rearIndex + 1) % queue.length; // Atualiza o índice rearIndex, realizando um "loop" circular
     }
 
     /*
      * Método para remover e retornar o primeiro elemento da fila
      * Lança exceção se a fila estiver vazia
      */
-    public String dequeue() {
+    public T dequeue() {
         if (this.isEmpty()) {
-            throw new IllegalStateException("Fila vazia.");
+            throw new IllegalStateException("Queue empty.");
         }
-        String valor = fila[front]; // Obtem o valor do primeiro elemento da fila
-        fila[front] = null; // Remove o elemento
-        front = (front + 1) % fila.length; // Atualiza o indice front, realizando um "loop" circular
-        return valor; // Retorna o elemento removido
+        T value = queue[frontIndex]; // Obtém o valor do primeiro elemento da fila
+        queue[frontIndex] = null; // Remove o elemento
+        frontIndex = (frontIndex + 1) % queue.length; // Atualiza o índice frontIndex, realizando um "loop" circular
+        return value; // Retorna o elemento removido
     }
 
     /*
-     * Método que retorna o primeiro elemento da fila sem remove-lo
+     * Método que retorna o primeiro elemento da fila sem removê-lo
      * Lança exceção se a fila estiver vazia
      */
-    public String front() {
+    public T peekFront() {
         if (this.isEmpty()) {
-        	throw new IllegalStateException("Fila vazia.");
+            throw new IllegalStateException("Queue empty.");
         }
-        return fila[front];
+        return queue[frontIndex];
     }
 
     /*
-     * Método que retorna o último elemento da fila sem remove-lo
+     * Método que retorna o último elemento da fila sem removê-lo
      * Lança exceção se a fila estiver vazia
      */
-    public String rear() {
-        if (rear == 0) {
-        	throw new IllegalStateException("Fila vazia.");
+    public T peekRear() {
+        if (this.isEmpty()) {
+            throw new IllegalStateException("Queue empty.");
         }
-        return fila[(rear - 1 + fila.length) % fila.length]; //// Retorna o último elemento da fila.
+        return queue[(rearIndex - 1 + queue.length) % queue.length]; // Retorna o último elemento da fila
     }
 
-    // Método que verifica se a fila está cheia (front e rear estão próximos, indicando que não há espaço)
+    // Método que verifica se a fila está cheia (frontIndex e rearIndex estão próximos, indicando que não há espaço)
     public boolean isFull() {
-        return (rear + 1) % fila.length == front; //// Verifica se o próximo índice de rear é igual a front
+        return (rearIndex + 1) % queue.length == frontIndex; // Verifica se o próximo índice de rearIndex é igual a frontIndex
     }
 
     // Método que retorna o tamanho total da fila
-    public int size() {
-        return fila.length;
+    public int getSize() {
+        return queue.length;
+    }
+    
+    // Método para esvaziar a fila
+    public void clear() {
+        while (!isEmpty()) {
+            dequeue();
+        }
     }
 }

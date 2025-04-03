@@ -1,4 +1,4 @@
-# Equation Evaluator
+# Mathematical Expressions Evaluator
 
 A Java-based REPL (Read-Evaluate-Print-Loop) application that evaluates mathematical expressions with variables and operations. This project was developed as part of a Data Structures course assignment.
 

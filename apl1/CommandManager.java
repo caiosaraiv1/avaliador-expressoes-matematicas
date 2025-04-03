@@ -1,116 +1,101 @@
 package apl1;
 
+import java.util.Locale;
+
 /*
  * Classe responsável por gerenciar os comandos recebidos
  */
 public class CommandManager {
-    
-    private VariableManager variableManager; // Gerenciador de variáveis
-    private Queue<String> queue; // Fila para armazenar comandos gravados
-    private boolean recording = false; // Indica se a gravação está ativa
-    private EquationEvaluator equationEvaluator; // Avaliador de expressões matemáticas
 
-    // Construtor que inicializa o Gerenciador de Variáveis, a Fila e o Avaliador
+    private VariableManager variableManager;
+    private Queue<String> queue;
+    private boolean recording = false;
+    private EquationEvaluator equationEvaluator;
+
     public CommandManager() {
         variableManager = new VariableManager();
         queue = new Queue<>();
-        equationEvaluator = new EquationEvaluator();
+        equationEvaluator = new EquationEvaluator(variableManager);
     }
-    
-    /*
-     * Método para verificar se o comando fornecido é válido
-     * Se não for, lança uma exceção
-     */
+
+    public boolean isRecording() {
+        return recording;
+    }
+
     public boolean isValidCommand(String command) {
-    	    	
-    	if(command == null) {
-    		throw new NullPointerException("Comando não pode ser nulo");
-    	}
-    	
+        if (command == null) throw new NullPointerException("Command cannot be null.");
+
         String[] validCommands = {"VARS", "RESET", "REC", "STOP", "PLAY", "ERASE", "EXIT"};
-        
+
         for (String validCommand : validCommands) {
-            if (command.equalsIgnoreCase(validCommand)) {
-                return true;
-            }
+            if (command.equalsIgnoreCase(validCommand)) return true;
         }
-        // X = 2
-        if (command.contains("=")) {
-            try {
-                variableManager.processAssignment(command);
-                return true;
-            } catch (IllegalArgumentException e) {
-                System.out.println("Error: " + e.getMessage());
-                return false; // Retorna falso porque o comando não é válido
-            }
-        }
-        
-        // X * Y
-        for(int i = 0; i < command.length(); i++) {
-        	if(equationEvaluator.isOperator(command.charAt(i))) {
-        		return true;
-        	}	
-        }
-        
-        try {
-            if (equationEvaluator.validateExpression(command)) return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }             
-        
-        throw new IllegalArgumentException("Invalid Command: " + command);
+        return false;
     }
-    
-    /*
-     * Método para executar o comando passado
-     */
-    public void executeCommand(String command) {
-        isValidCommand(command);
-        
-        if(equationEvaluator.validateExpression(command)) {
-        	try {
-        		equationEvaluator.convertEquation();
-        		Double result = equationEvaluator.expressionCalculator();
-        		System.out.println(result);
-        	} catch (Exception e) {
-        		System.out.println("Error: " + e.getMessage());
-        	}
-        	return;        	
+
+    public void executeCommand(String command) throws Exception {
+        try {
+            if (isValidCommand(command)) {
+                switch (command.toUpperCase()) {
+                    case "VARS":
+                        variableManager.listVariables();
+                        return;
+                    case "RESET":
+                        variableManager.resetVariables();
+                        return;
+                    case "REC":
+                        startRecording();
+                        return;
+                    case "STOP":
+                        stopRecording();
+                        return;
+                    case "PLAY":
+                        playCommands();
+                        return;
+                    case "ERASE":
+                        clearCommands();
+                        return;
+                    case "EXIT":
+                        System.out.println("Exiting the program...");
+                        System.exit(0);
+                        return;
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+            return;
         }
 
-        
-        switch (command) {
-            case "VARS":
-                variableManager.listVariables();
-                break;
-            case "RESET":
-                variableManager.resetVariables();
-                break;
-            case "REC":
-                startRecording();
-                break;
-            case "STOP":
-                stopRecording();
-                break;
-            case "PLAY":
-                playCommands();
-                break;
-            case "ERASE":
-                clearCommands();
-                break;
-            case "EXIT":
-                System.out.println("Exiting the program...");
-                System.exit(0);
-                break;
-            default:
-            	throw new IllegalArgumentException("Invalid Command.");
+        if (command.contains("=")) {
+            variableManager.processAssignment(command);
+            char variable = Character.toUpperCase(command.charAt(0));
+            System.out.println(variable + " = " + format(variableManager.getValue(variable)));
+            return;
+        }
+
+        if (command.length() == 1 && Character.isLetter(command.charAt(0))) {
+            char variable = Character.toUpperCase(command.charAt(0));
+            if (variableManager.isDefined(variable)) {
+                System.out.println(variable + " = " + format(variableManager.getValue(variable)));
+                return;
+            }
+            throw new IllegalArgumentException("Error: variable " + variable + " is not defined.");
+        }
+
+        try {
+            equationEvaluator.setReceivedEquation(command);
+            equationEvaluator.convertEquation();
+            double result = equationEvaluator.expressionCalculator();
+            System.out.println(format(result));
+        } catch (Exception e) {
+            System.out.println("Error calculating expression: " + e.getMessage());
         }
     }
-    
-    /*
-     * Método para iniciar a gravação de comandos
-     * Se já estiver gravando, lança uma exceção
-     */
+
+    private String format(double value) {
+        return String.format(Locale.US, "%.2f", value); // Usa ponto como separador decimal
+    }
+
     public void startRecording() {
         if (recording) {
             throw new IllegalArgumentException("Already recording.");
@@ -118,88 +103,123 @@ public class CommandManager {
         recording = true;
         System.out.println("Starting recording... (REC: 0/10)");
     }
-    
-    /*
-     * Método para gravar um comando na fila durante a gravação
-     */
-    public void recordCommand(String command) {
+
+ // Dentro de recordCommand()
+    public void recordCommand(String command) throws Exception {
         if (!recording) {
             throw new IllegalStateException("Recording not started.");
         }
-        
-        if (command.equalsIgnoreCase("REC") || 
-            command.equalsIgnoreCase("STOP") || 
+
+        // Verifica comandos inválidos
+        if (command.equalsIgnoreCase("REC") ||  
             command.equalsIgnoreCase("PLAY") || 
             command.equalsIgnoreCase("ERASE")) {
-            System.out.println("Invalid command for recording.");
+            System.out.println("Erro: comando inválido para gravação."); // ✅ mensagem corrigida
             return;
         }
-        
+
+        if (command.equalsIgnoreCase("STOP")) {
+            stopRecording();
+            return;
+        }
+
         if (queue.isFull()) {
             System.out.println("Command limit reached. Stopping recording...");
             stopRecording();
             return;
         }
-        
+
+        // Atribuições
         if (command.contains("=")) {
             try {
                 variableManager.processAssignment(command);
                 queue.enqueue(command);
-                System.out.println("(REC: " + queue.getSize() + "/10) " + command);
+                System.out.println("(REC: " + queue.getCurrentSize() + "/10) " + command);
                 return;
             } catch (IllegalArgumentException e) {
                 System.out.println("Error: " + e.getMessage());
                 return;
             }
         }
-        
+
+        // Expressões válidas
         try {
             equationEvaluator.validateExpression(command);
+            queue.enqueue(command);
+            System.out.println("(REC: " + queue.getCurrentSize() + "/10) " + command);
+            return;
         } catch (IllegalArgumentException e) {
-            System.out.println("Error: " + e.getMessage());
+            // Mesmo que inválida, ainda grava o comando como foi digitado
+            queue.enqueue(command);
+            System.out.println("(REC: " + queue.getCurrentSize() + "/10) " + command);
             return;
         }
-        
-        queue.enqueue(command);
-        System.out.println("(REC: " + queue.getSize() + "/10) " + command);
     }
-    
-    /*
-     * Método para parar a gravação de comandos.
-     */
+
     public void stopRecording() {
         if (!recording) {
             throw new IllegalStateException("Recording not started.");
         }
         recording = false;
-        System.out.println("Ending recording... (" + queue.getSize() + "/10)");
+        System.out.println("Ending recording... (" + queue.getCurrentSize() + "/10)");
     }
-    
-    /*
-     * Método para reproduzir os comandos gravados
-     */
-    public void playCommands() {
+
+ // Dentro de playCommands()
+    public void playCommands() throws Exception {
         if (queue.isEmpty()) {
-            System.out.println("There is no recording to play.");
+            System.out.println("Não há gravação para ser reproduzida."); // ✅ mensagem corrigida
             return;
         }
-        
-        System.out.println("Playing recording...");
+
+        System.out.println("Reproduzindo gravação...");
+        Queue<String> tempQueue = new Queue<>(10); // ✅ manter comandos
+
         while (!queue.isEmpty()) {
             String command = queue.dequeue();
-            System.out.println(command);
+            System.out.println(command); // ✅ sempre imprime o comando
+
+            try {
+                if (command.contains("=")) {
+                    variableManager.processAssignment(command);
+                } else if (command.length() == 1 && Character.isLetter(command.charAt(0))) {
+                    char var = Character.toUpperCase(command.charAt(0));
+                    if (variableManager.isDefined(var)) {
+                        System.out.println(var + " = " + variableManager.getValue(var));
+                    } else {
+                        System.out.println("Erro: variável " + var + " não definida.");
+                    }
+                } else if (command.equalsIgnoreCase("VARS")) {
+                    variableManager.listVariables();
+                } else if (command.equalsIgnoreCase("RESET")) {
+                    variableManager.resetVariables();
+                    System.out.println("Variáveis reiniciadas.");
+                } else {
+                    try {
+                        equationEvaluator.setReceivedEquation(command);
+                        equationEvaluator.convertEquation();
+                        double result = equationEvaluator.expressionCalculator();
+                        System.out.printf("%.0f\n", result); // ✅ saída sem casas decimais, como no exemplo
+                    } catch (Exception e) {
+                        System.out.println("Erro: operador inválido."); // ✅ mensagem padrão para falha de expressão
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
+
+            tempQueue.enqueue(command); // ✅ regrava no final para manter a gravação após o play
         }
+
+        queue = tempQueue; // ✅ restaura gravação após execução
     }
-    
-    /*
-     * Método para apagar os comandos gravados
-     */
+
+
     public void clearCommands() {
         if (queue.isEmpty()) {
             System.out.println("The queue is already empty.");
             return;
         }
-        
+
         queue.clear();
         System.out.println("Recording deleted..");
     }

@@ -86,6 +86,14 @@ public class Queue<T> {
         return queue.length;
     }
     
+    public int getCurrentSize() {
+    	if(rearIndex >= frontIndex) {
+    		return rearIndex - frontIndex;
+    	}
+    	
+    	return queue.length - (rearIndex + frontIndex);
+    }
+    
     // Método para esvaziar a fila
     public void clear() {
         while (!isEmpty()) {

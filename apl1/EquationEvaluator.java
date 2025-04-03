@@ -10,12 +10,12 @@ public class EquationEvaluator {
 	private Stack<String> stack;
 	private Stack<Double> stackDouble;
 
-	// Contrutor vazio
+	// Construtor vazio
 	public EquationEvaluator() {
 		this(""); // Chama o segundo construtor
 	}
 	
-	// Contrutor
+	// Construtor com equação
 	public EquationEvaluator(String receivedEquation) {
 		this.variableManager = new VariableManager();
 	    this.receivedEquation = removeSpacesAndUppercase(receivedEquation); // Remove espaços antes
@@ -25,11 +25,22 @@ public class EquationEvaluator {
 	    this.stack = new Stack<>();
 	    this.stackDouble = new Stack<>();
 	}
+	
+	// Construtor que recebe o gerenciador
+	public EquationEvaluator(VariableManager variableManager) {
+	    this.variableManager = variableManager; //  usa a mesma instância
+	    this.receivedEquation = "";
+	    this.convertedEquation = "";
+	    this.stack = new Stack<>();
+	    this.stackDouble = new Stack<>();
+	}
 
 	// Define a equação recebida
     public void setReceivedEquation(String receivedEquation) {
-	this.receivedEquation = receivedEquation;
+    	this.receivedEquation = removeSpacesAndUppercase(receivedEquation);
         validateExpression(receivedEquation);
+        this.equationLength = this.receivedEquation.length();
+        this.convertedEquation = "";
     }
 
     // Remove espaços da equação e a converte para letras maiúsculas
@@ -58,10 +69,6 @@ public class EquationEvaluator {
 
         for (int i = 0; i < chars.length; i++) {
             char letter = chars[i];
-
-            if (!variableManager.isDefined(letter)) {
-                throw new IllegalArgumentException("Invalid Expression: Undefined variable");
-            }
 
             if (Character.isLetter(letter) && i < chars.length - 1 && Character.isLetter(chars[i + 1])) {
                 throw new IllegalArgumentException("Invalid Expression: String detected.");
@@ -106,21 +113,22 @@ public class EquationEvaluator {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
     }
 
-    // Verifica se o operador no topo da pilha tem maior precedência
-    private boolean isTopOperatorHigher(String comparedOperator) throws Exception {
-        if (comparedOperator.equals("^")) return true;
-        if (comparedOperator.equals("*") || comparedOperator.equals("/")) {
-            return stack.peek().equals("^");
+    //método de precedência dos operadores
+    private int getPrecedence(String op) {
+        switch (op) {
+            case "^": return 3;
+            case "*": case "/": return 2;
+            case "+": case "-": return 1;
+            default: return 0;
         }
-        return false;
     }
 
 	// Converte equação de notação infixa para pós-fixa
 	public void convertEquation() throws Exception {
 	    for (int i = 0; i < this.equationLength; i++) {
 	        String c = String.valueOf(this.receivedEquation.charAt(i));
-	
-	        if (c.equals("(")) {
+	        
+	        if (c.equals("(")) {	
 	            this.stack.push(c);
 	            continue;
 	        }
@@ -129,12 +137,12 @@ public class EquationEvaluator {
 	            while (!this.stack.isEmpty() && !this.stack.peek().equals("(")) {
 	                this.convertedEquation += this.stack.pop();
 	            }
-	            this.stack.pop();
+	            this.stack.pop(); // remove o parêntese de abertura
 	            continue;
 	        }
 	
 	        if (isOperator(c.charAt(0))) {
-	            while (!this.stack.isEmpty() && isTopOperatorHigher(c)) {
+	            while (!this.stack.isEmpty() && getPrecedence(this.stack.peek()) >= getPrecedence(c)) {
 	                this.convertedEquation += this.stack.pop();
 	            }
 	            this.stack.push(c);
@@ -144,7 +152,6 @@ public class EquationEvaluator {
 	        this.convertedEquation += c;
 	    }
 
-
 	    // Esvazia a pilha ao final
 	    while (!this.stack.isEmpty()) {
 	        String topo = this.stack.pop();
@@ -153,35 +160,23 @@ public class EquationEvaluator {
 	        }
 	    }
 	}
-    // Calcula a equação em posfixa
-    public Double expressionCalculator(){
-        for(int i = 0; i < this.equationLength; i++){
+
+    // Calcula a equação em pós-fixa
+    public Double expressionCalculator() {
+        for(int i = 0; i < this.convertedEquation.length(); i++) {
             char c = this.convertedEquation.charAt(i);
-            if(!isOperator(c)) {
-                double value = this.variableManager.getValue(c); //Pega o valor numerico
-                this.stackDouble.push(value); //empilha
-            }
-            else {
+            if (!isOperator(c)) {
+                double value = this.variableManager.getValue(c); // Pega valor da variável
+                this.stackDouble.push(value);
+            } else {
                 double num2 = this.stackDouble.pop();
                 double num1 = this.stackDouble.pop();
-                if (c == '/'){
-                    double result = num1/num2;
-                    this.stackDouble.push(result);
-                }
-                if (c == '*'){
-                    double result = num1*num2;
-                    this.stackDouble.push(result);
-                }
-                if (c == '+'){
-                    double result = num1+num2;
-                    this.stackDouble.push(result);
-                }
-                if (c == '-'){
-                    double result = num1-num2;
-                    this.stackDouble.push(result);
-                }
+                if (c == '/') this.stackDouble.push(num1 / num2);
+                if (c == '*') this.stackDouble.push(num1 * num2);
+                if (c == '+') this.stackDouble.push(num1 + num2);
+                if (c == '-') this.stackDouble.push(num1 - num2);
             }
         }
-        return this.stackDouble.peek(); //Retorna o resultado
+        return this.stackDouble.peek(); // Retorna o resultado
     }
 }

@@ -43,6 +43,7 @@ public class VariableManager {
             // Converte de string para double
             double value = Double.parseDouble(parts[1]);
             // Adiciona ou atualiza a variável e seu valor
+            
             addVariable(variable, value);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid value.");
@@ -61,12 +62,12 @@ public class VariableManager {
                 return;
             }
         }
-
         // Se a variável não existir, adiciona em uma nova posição
         if (count < MAX_SIZE) {
             variables[count] = variable;
             values[count] = value;
             count++;
+
         } else {
             throw new IllegalArgumentException("Maximum number of variables reached.");
         }
@@ -88,12 +89,12 @@ public class VariableManager {
      */
     public double getValue(char variable) {
         // Percorre o array de variáveis para encontrar o valor
-        for (int i = 0; i < count; i++) {
-            if (variables[i] == variable) {
+        for (int i = 0; i < 26; i++) {
+            if (this.variables[i] == variable) {
                 return values[i];
             }
         }
-
+        
         throw new IllegalArgumentException("Variable " + variable + " not defined.");
     }
 
@@ -108,6 +109,7 @@ public class VariableManager {
         for (int i = 0; i < count; i++) {
             System.out.println(variables[i] + " = " + values[i]);
         }
+        return;
     }
 
     // Reseta todas as variáveis criando arrays novos e zerando o contador

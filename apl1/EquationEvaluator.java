@@ -175,6 +175,7 @@ public class EquationEvaluator {
                 if (c == '*') this.stackDouble.push(num1 * num2);
                 if (c == '+') this.stackDouble.push(num1 + num2);
                 if (c == '-') this.stackDouble.push(num1 - num2);
+		if (c == '^') this.stackDouble.push(Math.pow(num1, num2));
             }
         }
         return this.stackDouble.peek(); // Retorna o resultado

@@ -146,5 +146,35 @@ public void convertEquation() throws Exception {
             this.convertedEquation += topo;
         }
     }
+    // Calcula a equação em posfixa
+    public Double expressionCalculator(){
+        for(int i = 0; i < this.equationLength; i++){
+            char c = this.convertedEquation.charAt(i);
+            if(!isOperator(c)){
+                double value = this.VariableManager.getValue(c); //Pega o valor numerico
+                this.stack.push(value); //empilha
+            }
+            else{
+                double num2 = this.stack.pop();
+                double num1 = this.stack.pop();
+                if (c == '/'){
+                    double result = num1/num2;
+                    this.stack.push(result);
+                }
+                if (c == '*'){
+                    double result = num1*num2;
+                    this.stack.push(result);
+                }
+                if (c == '+'){
+                    double result = num1+num2;
+                    this.stack.push(result);
+                }
+                if (c == '-'){
+                    double result = num1-num2;
+                    this.stack.push(result);
+                }
+            }
+        }
+        return this.stack.topo(); //Retorna o resultado
+    }
 }
-

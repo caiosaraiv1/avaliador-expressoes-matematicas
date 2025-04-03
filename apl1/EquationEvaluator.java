@@ -18,11 +18,11 @@ public class EquationEvaluator {
 	// Contrutor
 	public EquationEvaluator(String equacaoRecebida) {
 		this.variableManager = new VariableManager();
+		this.receivedEquation = removeSpacesAndUppercase(receivedEquation);
 		validateExpression(receivedEquation); // Valida a expressão antes de processá-la
-        this.receivedEquation = removeSpacesAndUppercase(receivedEquation);
-        this.convertedEquation = "";
-        this.equationLength = receivedEquation.length();
-        this.stack = new Stack<>();
+        	this.convertedEquation = "";
+       		this.equationLength = receivedEquation.length();
+        	this.stack = new Stack<>();
 	}
 
 	// Define a equação recebida

@@ -94,5 +94,5 @@ X + Y + Z
 ## Contributors
 
 - Caio Ariel
-- Kaique Paiva
 - Isabela Hissa
+- Kaique Paiva

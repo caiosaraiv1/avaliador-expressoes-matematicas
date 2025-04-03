@@ -71,24 +71,24 @@ public class EquationEvaluator {
             char letter = chars[i];
 
             if (Character.isLetter(letter) && i < chars.length - 1 && Character.isLetter(chars[i + 1])) {
-                throw new IllegalArgumentException("Invalid Expression: String detected.");
+                throw new IllegalArgumentException("String detected.");
             }
 
             if (isInvalidChar(letter)) {
-                throw new IllegalArgumentException("Invalid Expression: Operator not allowed detected.");
+                throw new IllegalArgumentException("Operator not allowed detected.");
             }
 
             if (letter == '(') {
                 openParentheses++;
                 if (i < chars.length - 1 && isOperator(chars[i + 1])) {
-                    throw new IllegalArgumentException("Invalid Expression: Has an operator after the parentheses");
+                    throw new IllegalArgumentException("Has an operator after the parentheses");
                 }
             } else if (letter == ')') {
                 closeParentheses++;
                 lastWasOperator = false;
             } else if (isOperator(letter)) {
                 if (lastWasOperator) {
-                    throw new IllegalArgumentException("Invalid Expression: Consecutive operators.");
+                    throw new IllegalArgumentException("Consecutive operators.");
                 }
                 lastWasOperator = true;
             } else {
@@ -97,7 +97,7 @@ public class EquationEvaluator {
         }
 
         if (openParentheses != closeParentheses) {
-            throw new IllegalArgumentException("Invalid Expression: Unequal number of parentheses");
+            throw new IllegalArgumentException("Unequal number of parentheses");
         }
         
         return true;

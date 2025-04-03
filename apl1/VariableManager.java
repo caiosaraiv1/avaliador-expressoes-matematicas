@@ -36,7 +36,7 @@ public class VariableManager {
         
         // Valida se está no intervalo de A-Z
         if (variable < 'A' || variable > 'Z') {
-            throw new IllegalArgumentException("Invalid variable. Use letters (A-Z)");
+            throw new IllegalArgumentException("Invalid variable. Use letters (A-Z).");
         }
 
         try {

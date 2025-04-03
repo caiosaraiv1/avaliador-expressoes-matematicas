@@ -8,7 +8,7 @@ public class Stack<T> {
     
     // Construtor que recebe o tamanho da pilha
     @SuppressWarnings("unchecked")
-    public Stack(int size) {
+	public Stack(int size) {
         this.array = (T[]) new Object[size];
         this.top = -1;
     }

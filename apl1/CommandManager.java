@@ -22,6 +22,11 @@ public class CommandManager {
      * Se não for, lança uma exceção
      */
     public boolean isValidCommand(String command) {
+    	    	
+    	if(command == null) {
+    		throw new NullPointerException("Comando não pode ser nulo");
+    	}
+    	
         String[] validCommands = {"VARS", "RESET", "REC", "STOP", "PLAY", "ERASE", "EXIT"};
         
         for (String validCommand : validCommands) {
@@ -29,6 +34,30 @@ public class CommandManager {
                 return true;
             }
         }
+        // X = 2
+        if (command.contains("=")) {
+            try {
+                variableManager.processAssignment(command);
+                return true;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());
+                return false; // Retorna falso porque o comando não é válido
+            }
+        }
+        
+        // X * Y
+        for(int i = 0; i < command.length(); i++) {
+        	if(equationEvaluator.isOperator(command.charAt(i))) {
+        		return true;
+        	}	
+        }
+        
+        try {
+            if (equationEvaluator.validateExpression(command)) return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }             
+        
         throw new IllegalArgumentException("Invalid Command: " + command);
     }
     
@@ -37,6 +66,18 @@ public class CommandManager {
      */
     public void executeCommand(String command) {
         isValidCommand(command);
+        
+        if(equationEvaluator.validateExpression(command)) {
+        	try {
+        		equationEvaluator.convertEquation();
+        		Double result = equationEvaluator.expressionCalculator();
+        		System.out.println(result);
+        	} catch (Exception e) {
+        		System.out.println("Error: " + e.getMessage());
+        	}
+        	return;        	
+        }
+
         
         switch (command) {
             case "VARS":
@@ -62,7 +103,7 @@ public class CommandManager {
                 System.exit(0);
                 break;
             default:
-                throw new IllegalArgumentException("Invalid Command.");
+            	throw new IllegalArgumentException("Invalid Command.");
         }
     }
     
@@ -98,6 +139,18 @@ public class CommandManager {
             System.out.println("Command limit reached. Stopping recording...");
             stopRecording();
             return;
+        }
+        
+        if (command.contains("=")) {
+            try {
+                variableManager.processAssignment(command);
+                queue.enqueue(command);
+                System.out.println("(REC: " + queue.getSize() + "/10) " + command);
+                return;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());
+                return;
+            }
         }
         
         try {

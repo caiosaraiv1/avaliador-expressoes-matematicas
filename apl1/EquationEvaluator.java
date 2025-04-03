@@ -3,26 +3,27 @@ package apl1;
 // Será feito as validações, conversões, avaliações e lógica do calculo
 public class EquationEvaluator {
 	
-	private VariableManager variableManager = new VariableManager();
+	private VariableManager variableManager;
 	private String receivedEquation;
-	@SuppressWarnings("unused")
 	private String convertedEquation;
 	private int equationLength;
 	private Stack<String> stack;
+	private Stack<Double> stackDouble;
 
 	// Contrutor vazio
 	public EquationEvaluator() {
 		this(""); // Chama o segundo construtor
 	}
-
+	
 	// Contrutor
-	public EquationEvaluator(String equacaoRecebida) {
+	public EquationEvaluator(String receivedEquation) {
 		this.variableManager = new VariableManager();
-		this.receivedEquation = removeSpacesAndUppercase(receivedEquation);
-		validateExpression(receivedEquation); // Valida a expressão antes de processá-la
-        	this.convertedEquation = "";
-       		this.equationLength = receivedEquation.length();
-        	this.stack = new Stack<>();
+	    this.receivedEquation = removeSpacesAndUppercase(receivedEquation); // Remove espaços antes
+	    validateExpression(this.receivedEquation); // Agora valida a versão correta
+	    this.convertedEquation = "";
+	    this.equationLength = this.receivedEquation.length();
+	    this.stack = new Stack<>();
+	    this.stackDouble = new Stack<>();
 	}
 
 	// Define a equação recebida
@@ -44,8 +45,10 @@ public class EquationEvaluator {
     }
 
     // Valida se a equação está corretamente formatada
-    public void validateExpression(String expression) {
-        if (expression.isEmpty() || isOperator(expression.charAt(0)) || isOperator(expression.charAt(expression.length() - 1))) {
+    public boolean validateExpression(String expression) {
+    	if(expression.isEmpty()) return false;
+    	
+        if (isOperator(expression.charAt(0)) || isOperator(expression.charAt(expression.length() - 1))) {
             throw new IllegalArgumentException("Invalid Expression.");
         }
 
@@ -89,6 +92,8 @@ public class EquationEvaluator {
         if (openParentheses != closeParentheses) {
             throw new IllegalArgumentException("Invalid Expression: Unequal number of parentheses");
         }
+        
+        return true;
     }
 
     // Verifica se um caractere é inválido
@@ -97,7 +102,7 @@ public class EquationEvaluator {
     }
 
     // Verifica se um caractere é um operador matemático
-    private boolean isOperator(char c) {
+    public boolean isOperator(char c) {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
     }
 
@@ -110,71 +115,73 @@ public class EquationEvaluator {
         return false;
     }
 
-// Converte equação de notação infixa para pós-fixa
-public void convertEquation() throws Exception {
-    for (int i = 0; i < this.equationLength; i++) {
-        String c = String.valueOf(this.receivedEquation.charAt(i));
+	// Converte equação de notação infixa para pós-fixa
+	public void convertEquation() throws Exception {
+	    for (int i = 0; i < this.equationLength; i++) {
+	        String c = String.valueOf(this.receivedEquation.charAt(i));
+	
+	        if (c.equals("(")) {
+	            this.stack.push(c);
+	            continue;
+	        }
+	
+	        if (c.equals(")")) {
+	            while (!this.stack.isEmpty() && !this.stack.peek().equals("(")) {
+	                this.convertedEquation += this.stack.pop();
+	            }
+	            this.stack.pop();
+	            continue;
+	        }
+	
+	        if (isOperator(c.charAt(0))) {
+	            while (!this.stack.isEmpty() && isTopOperatorHigher(c)) {
+	                this.convertedEquation += this.stack.pop();
+	            }
+	            this.stack.push(c);
+	            continue;
+	        }
+	
+	        this.convertedEquation += c;
+	    }
 
-        if (c.equals("(")) {
-            this.stack.push(c);
-            continue;
-        }
 
-        if (c.equals(")")) {
-            while (!this.stack.isEmpty() && !this.stack.peek().equals("(")) {
-                this.convertedEquation += this.stack.pop();
-            }
-            this.stack.pop();
-            continue;
-        }
-
-        if (isOperator(c.charAt(0))) {
-            while (!this.stack.isEmpty() && isTopOperatorHigher(c)) {
-                this.convertedEquation += this.stack.pop();
-            }
-            this.stack.push(c);
-            continue;
-        }
-
-        this.convertedEquation += c;
-    }
-
-    // Esvazia a pilha ao final
-    while (!this.stack.isEmpty()) {
-        String topo = this.stack.pop();
-        if (!topo.equals("(") && !topo.equals(")")) {
-            this.convertedEquation += topo;
-        }
-    }
+	    // Esvazia a pilha ao final
+	    while (!this.stack.isEmpty()) {
+	        String topo = this.stack.pop();
+	        if (!topo.equals("(") && !topo.equals(")")) {
+	            this.convertedEquation += topo;
+	        }
+	    }
+	}
     // Calcula a equação em posfixa
     public Double expressionCalculator(){
         for(int i = 0; i < this.equationLength; i++){
             char c = this.convertedEquation.charAt(i);
-            if(!isOperator(c)){
-                double value = this.VariableManager.getValue(c); //Pega o valor numerico
-                this.stack.push(value); //empilha
+            if(!isOperator(c)) {
+                double value = this.variableManager.getValue(c); //Pega o valor numerico
+                this.stackDouble.push(value); //empilha
             }
-            else{
-                double num2 = this.stack.pop();
-                double num1 = this.stack.pop();
+            else {
+                double num2 = this.stackDouble.pop();
+                double num1 = this.stackDouble.pop();
                 if (c == '/'){
                     double result = num1/num2;
-                    this.stack.push(result);
+                    this.stackDouble.push(result);
                 }
                 if (c == '*'){
                     double result = num1*num2;
-                    this.stack.push(result);
+                    this.stackDouble.push(result);
                 }
                 if (c == '+'){
                     double result = num1+num2;
-                    this.stack.push(result);
+                    this.stackDouble.push(result);
                 }
                 if (c == '-'){
                     double result = num1-num2;
-                    this.stack.push(result);
+                    this.stackDouble.push(result);
                 }
             }
         }
-        return this.stack.topo(); //Retorna o resultado
+        return this.stackDouble.peek(); //Retorna o resultado
     }
 }

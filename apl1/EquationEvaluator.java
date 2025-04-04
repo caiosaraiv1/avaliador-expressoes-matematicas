@@ -12,23 +12,12 @@ public class EquationEvaluator {
 
 	// Construtor vazio
 	public EquationEvaluator() {
-		this(""); // Chama o segundo construtor
-	}
-	
-	// Construtor com equação
-	public EquationEvaluator(String receivedEquation) {
-		this.variableManager = new VariableManager();
-	    this.receivedEquation = removeSpacesAndUppercase(receivedEquation); // Remove espaços antes
-	    validateExpression(this.receivedEquation); // Agora valida a versão correta
-	    this.convertedEquation = "";
-	    this.equationLength = this.receivedEquation.length();
-	    this.stack = new Stack<>();
-	    this.stackDouble = new Stack<>();
+		this(new VariableManager()); // Chama o segundo construtor
 	}
 	
 	// Construtor que recebe o gerenciador
 	public EquationEvaluator(VariableManager variableManager) {
-	    this.variableManager = variableManager; //  usa a mesma instância
+	    this.variableManager = variableManager; //  usa a mesma instância, passada como argumento
 	    this.receivedEquation = "";
 	    this.convertedEquation = "";
 	    this.stack = new Stack<>();
@@ -57,27 +46,27 @@ public class EquationEvaluator {
 
     // Valida se a equação está corretamente formatada
     public boolean validateExpression(String expression) {
-    	if(expression.isEmpty()) return false;
-    	
+    	if(expression.isEmpty()) return false; //Se vazia
+    	//Se operador no começo ou fim
         if (isOperator(expression.charAt(0)) || isOperator(expression.charAt(expression.length() - 1))) {
             throw new IllegalArgumentException("Invalid Expression.");
         }
-
+        //Contador de parêntesis
         int openParentheses = 0, closeParentheses = 0;
         boolean lastWasOperator = false;
         char[] chars = expression.toCharArray();
 
         for (int i = 0; i < chars.length; i++) {
             char letter = chars[i];
-
+            //checa se tem duas letras seguidas
             if (Character.isLetter(letter) && i < chars.length - 1 && Character.isLetter(chars[i + 1])) {
                 throw new IllegalArgumentException("String detected.");
             }
-
+            //checa operadores invalidos
             if (isInvalidChar(letter)) {
                 throw new IllegalArgumentException("Operator not allowed detected.");
             }
-
+            //somatorio qtd de parêntesis
             if (letter == '(') {
                 openParentheses++;
                 if (i < chars.length - 1 && isOperator(chars[i + 1])) {
@@ -87,7 +76,7 @@ public class EquationEvaluator {
                 closeParentheses++;
                 lastWasOperator = false;
             } else if (isOperator(letter)) {
-                if (lastWasOperator) {
+                if (lastWasOperator) { //valida operadores consecutivos
                     throw new IllegalArgumentException("Consecutive operators.");
                 }
                 lastWasOperator = true;
@@ -96,7 +85,7 @@ public class EquationEvaluator {
             }
         }
 
-        if (openParentheses != closeParentheses) {
+        if (openParentheses != closeParentheses) { //valida qtd parentesis
             throw new IllegalArgumentException("Unequal number of parentheses");
         }
         
@@ -128,12 +117,12 @@ public class EquationEvaluator {
 	    for (int i = 0; i < this.equationLength; i++) {
 	        String c = String.valueOf(this.receivedEquation.charAt(i));
 	        
-	        if (c.equals("(")) {	
+	        if (c.equals("(")) { //Se parêntesis abertura, empilha
 	            this.stack.push(c);
 	            continue;
 	        }
 	
-	        if (c.equals(")")) {
+	        if (c.equals(")")) { //Se parentesis fechamento, desempilha e concatena até achar o de abertura
 	            while (!this.stack.isEmpty() && !this.stack.peek().equals("(")) {
 	                this.convertedEquation += this.stack.pop();
 	            }
@@ -141,7 +130,7 @@ public class EquationEvaluator {
 	            continue;
 	        }
 	
-	        if (isOperator(c.charAt(0))) {
+	        if (isOperator(c.charAt(0))) { //enquanto operador empilhado for >= que o do indice, desempilha e concatena
 	            while (!this.stack.isEmpty() && getPrecedence(this.stack.peek()) >= getPrecedence(c)) {
 	                this.convertedEquation += this.stack.pop();
 	            }
@@ -149,33 +138,39 @@ public class EquationEvaluator {
 	            continue;
 	        }
 	
-	        this.convertedEquation += c;
+	        this.convertedEquation += c; //passou por tudo -> concatena
 	    }
 
-	    // Esvazia a pilha ao final
+	    // Esvazia a pilha ao final (precaução)
 	    while (!this.stack.isEmpty()) {
 	        String topo = this.stack.pop();
-	        if (!topo.equals("(") && !topo.equals(")")) {
+	        if (!topo.equals("(") && !topo.equals(")")) { //ignora parêntesis
 	            this.convertedEquation += topo;
 	        }
 	    }
 	}
 
     // Calcula a equação em pós-fixa
-    public Double expressionCalculator() {
+    public Double expressionCalculator() throws Exception {
         for(int i = 0; i < this.convertedEquation.length(); i++) {
             char c = this.convertedEquation.charAt(i);
-            if (!isOperator(c)) {
+            if (!isOperator(c)) { //se não for operador
                 double value = this.variableManager.getValue(c); // Pega valor da variável
-                this.stackDouble.push(value);
+                this.stackDouble.push(value); //empilha
             } else {
                 double num2 = this.stackDouble.pop();
                 double num1 = this.stackDouble.pop();
-                if (c == '/') this.stackDouble.push(num1 / num2);
                 if (c == '*') this.stackDouble.push(num1 * num2);
                 if (c == '+') this.stackDouble.push(num1 + num2);
                 if (c == '-') this.stackDouble.push(num1 - num2);
-		if (c == '^') this.stackDouble.push(Math.pow(num1, num2));
+                if (c == '^') this.stackDouble.push(Math.pow(num1, num2));
+                if (c == '/') {
+                    if (num2 == 0){ //Não divide por zero
+                        throw new Exception("Division by zero is not allowed.");
+                    }else{
+                        this.stackDouble.push(num1 / num2);
+                    }
+                }    
             }
         }
         return this.stackDouble.peek(); // Retorna o resultado

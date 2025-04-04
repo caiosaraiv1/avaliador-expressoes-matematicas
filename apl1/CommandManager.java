@@ -212,7 +212,7 @@ public class CommandManager {
                         double result = equationEvaluator.expressionCalculator();
                         System.out.printf(Locale.US, "%.0f\n", result); 
                     } catch (Exception e) {
-                        System.out.println("Error -> Invalid operator.");
+                        System.out.println("Error -> " + e.getMessage());
                     }
                 }
             } catch (Exception e) {
